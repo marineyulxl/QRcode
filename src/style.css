@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased text-ink bg-surface;
+  }
+
+  body {
+    @apply min-h-dvh;
+  }
+
+  #app {
+    @apply min-h-dvh;
+  }
+}
