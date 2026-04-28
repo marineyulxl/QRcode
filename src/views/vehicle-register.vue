@@ -138,7 +138,7 @@ async function onSubmit(): Promise<void> {
 
       <CapturePhotoField
         v-model="driverPhoto"
-        label="司机自拍"
+        label="司机照片"
         required
         capture="user"
         :error="errors.driverPhoto"

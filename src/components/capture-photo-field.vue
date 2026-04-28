@@ -110,7 +110,7 @@ const displayError = () => props.error || localError.value
         class="flex min-h-touch w-full items-center justify-center px-4 py-6 text-sm text-ink-muted"
         @click="openPicker"
       >
-        点击拍摄或从相册选择
+        点击拍摄
       </button>
     </div>
 
