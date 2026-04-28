@@ -35,7 +35,7 @@ function validate(): boolean {
   if (!isPlate(plateNumber.value)) errors.plateNumber = '请填写有效车牌号'
   if (!vehicleType.value) errors.vehicleType = '请选择车辆类型'
   if (!isMobile(mobile.value)) errors.mobile = '请填写有效手机号'
-  if (!driverPhoto.value) errors.driverPhoto = '请拍摄司机自拍'
+  if (!driverPhoto.value) errors.driverPhoto = '请拍摄司机照片'
   if (!vehiclePhoto.value) errors.vehiclePhoto = '请拍摄车辆照片'
 
   return Object.keys(errors).length === 0
@@ -113,11 +113,15 @@ async function onSubmit(): Promise<void> {
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-medium text-ink" for="driverIdNumber">司机身份证号 <span class="text-danger">*</span></label>
+        <label class="text-sm font-medium text-ink" for="driverIdNumber">身份证号 <span class="text-danger">*</span></label>
         <input id="driverIdNumber" v-model="driverIdNumber" type="text" inputmode="numeric" autocomplete="off" :class="fieldClass" />
         <p v-if="errors.driverIdNumber" class="text-sm text-danger">{{ errors.driverIdNumber }}</p>
       </div>
-
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-ink" for="vmobile">手机号码 <span class="text-danger">*</span></label>
+        <input id="vmobile" v-model="mobile" type="tel" inputmode="numeric" autocomplete="tel" :class="fieldClass" />
+        <p v-if="errors.mobile" class="text-sm text-danger">{{ errors.mobile }}</p>
+      </div>
       <div class="space-y-2">
         <label class="text-sm font-medium text-ink" for="plateNumber">车牌号 <span class="text-danger">*</span></label>
         <input id="plateNumber" v-model="plateNumber" type="text" autocomplete="off" autocapitalize="characters" :class="fieldClass" />
@@ -130,12 +134,6 @@ async function onSubmit(): Promise<void> {
           <option v-for="t in VEHICLE_TYPES" :key="t" :value="t">{{ t }}</option>
         </select>
         <p v-if="errors.vehicleType" class="text-sm text-danger">{{ errors.vehicleType }}</p>
-      </div>
-
-      <div class="space-y-2">
-        <label class="text-sm font-medium text-ink" for="vmobile">手机号码 <span class="text-danger">*</span></label>
-        <input id="vmobile" v-model="mobile" type="tel" inputmode="numeric" autocomplete="tel" :class="fieldClass" />
-        <p v-if="errors.mobile" class="text-sm text-danger">{{ errors.mobile }}</p>
       </div>
 
       <CapturePhotoField

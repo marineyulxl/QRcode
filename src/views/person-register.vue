@@ -26,7 +26,7 @@ function validate(): boolean {
 
   if (!visitorName.value.trim()) errors.visitorName = '请填写访客姓名'
   if (!isMobile(mobile.value)) errors.mobile = '请填写有效手机号'
-  if (!photo.value) errors.photo = '请拍摄现场照片'
+  if (!photo.value) errors.photo = '请拍摄人脸照片'
   if (!reason.value.trim()) errors.reason = '请填写事由'
   if (!isIdCard(idNumber.value)) errors.idNumber = '请填写有效身份证号'
 
@@ -52,7 +52,7 @@ async function onSubmit(): Promise<void> {
   try {
     const photoFile = photo.value
     if (!photoFile) {
-      showToast('请拍摄现场照片', 'error')
+      showToast('请拍摄人脸照片', 'error')
       return
     }
 
@@ -110,7 +110,11 @@ async function onSubmit(): Promise<void> {
         <input id="visitorName" v-model="visitorName" type="text" autocomplete="name" :class="fieldClass" />
         <p v-if="errors.visitorName" class="text-sm text-danger">{{ errors.visitorName }}</p>
       </div>
-
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-ink" for="idNumber">身份证号 <span class="text-danger">*</span></label>
+        <input id="idNumber" v-model="idNumber" type="text" inputmode="numeric" autocomplete="off" :class="fieldClass" />
+        <p v-if="errors.idNumber" class="text-sm text-danger">{{ errors.idNumber }}</p>
+      </div>
       <div class="space-y-2">
         <label class="text-sm font-medium text-ink" for="mobile">手机号 <span class="text-danger">*</span></label>
         <input id="mobile" v-model="mobile" type="tel" inputmode="numeric" autocomplete="tel" :class="fieldClass" />
@@ -139,11 +143,7 @@ async function onSubmit(): Promise<void> {
         <p v-if="errors.reason" class="text-sm text-danger">{{ errors.reason }}</p>
       </div>
 
-      <div class="space-y-2">
-        <label class="text-sm font-medium text-ink" for="idNumber">身份证号 <span class="text-danger">*</span></label>
-        <input id="idNumber" v-model="idNumber" type="text" inputmode="numeric" autocomplete="off" :class="fieldClass" />
-        <p v-if="errors.idNumber" class="text-sm text-danger">{{ errors.idNumber }}</p>
-      </div>
+
 
       <div class="h-24" aria-hidden="true" />
     </main>
