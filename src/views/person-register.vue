@@ -121,7 +121,7 @@ async function onSubmit(): Promise<void> {
         <p v-if="errors.mobile" class="text-sm text-danger">{{ errors.mobile }}</p>
       </div>
 
-      <CapturePhotoField v-model="photo" label="现场照片" required capture="environment" :error="errors.photo" />
+      <CapturePhotoField v-model="photo" label="人脸照片" required capture="environment" :error="errors.photo" />
 
       <div class="space-y-2">
         <label class="text-sm font-medium text-ink" for="companionCount">随访人数（选填）</label>

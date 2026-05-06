@@ -19,6 +19,8 @@ pnpm run build
 
 用户从首页再进入 `/person`、`/vehicle`，无需把子路径写进二维码。
 
+**出货单（双二维码）**：司机码指向 **`/out/driver`**，库管码指向 **`/out/warehouse`**（无需 query；完整 URL 示例：`https://你的域名/out/driver`）。需 HTTPS 生产域名，端口若有则一并写入。
+
 ## SPA 回退（必须）
 
 直接打开或刷新 `https://host/person` 时，服务器必须返回 `index.html`，否则会出现 404。

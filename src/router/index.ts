@@ -20,6 +20,18 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../views/vehicle-register.vue'),
     meta: { title: '车辆登记' },
   },
+  {
+    path: '/out/driver',
+    name: 'outbound-driver',
+    component: () => import('../views/outbound-driver-page.vue'),
+    meta: { title: '进场登记·司机' },
+  },
+  {
+    path: '/out/warehouse',
+    name: 'outbound-warehouse',
+    component: () => import('../views/outbound-warehouse-page.vue'),
+    meta: { title: '出库登记·库管' },
+  },
 ]
 
 export const router = createRouter({

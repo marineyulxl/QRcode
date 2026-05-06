@@ -33,3 +33,10 @@ export function parseOptionalNonNegativeInt(value: unknown): number | null {
   if (!Number.isFinite(n) || n < 0) return null
   return n
 }
+
+/** 正整数（≥1），用于出库数量等 */
+export function parsePositiveInt(value: unknown): number | null {
+  const n = parseOptionalNonNegativeInt(value)
+  if (n === null || n < 1) return null
+  return n
+}
