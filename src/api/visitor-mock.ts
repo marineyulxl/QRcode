@@ -1,7 +1,4 @@
-/**
- * 占位 API：结构与后续真实后端对齐；勿在此写入任何密钥。
- * 配色/风格对齐 UI UX Pro Max：Minimalism + 园区访客正式场景（见 tailwind.config.js 注释）。
- */
+/** 车辆登记占位：接后端后替换为真实接口（人员已走 `front-personnel` + `infra-file`）。 */
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -12,19 +9,6 @@ function summarizeBase64(dataUrl: string, max = 48): string {
   return `${dataUrl.slice(0, max)}…(len=${dataUrl.length})`
 }
 
-/** 访客信息随本单提交；接海康时由后端在成功落库后处理，无需单独前端开关 */
-export type VisitorPersonSubmitBody = {
-  visitorName: string
-  mobile: string
-  /** JPEG data URL，便于后续改为 multipart */
-  photoDataUrl: string
-  photoFileName: string
-  companionCount: number | null
-  reason: string
-  idNumber: string
-}
-
-/** 车牌随本单提交；接海康时由后端在成功落库后同步，无需单独前端开关 */
 export type VisitorVehicleSubmitBody = {
   driverName: string
   driverIdNumber: string
@@ -37,14 +21,6 @@ export type VisitorVehicleSubmitBody = {
   vehiclePhotoFileName: string
 }
 
-async function submitPerson(body: VisitorPersonSubmitBody): Promise<void> {
-  await sleep(900)
-  console.info('[VisitorApi.submitPerson] mock payload', {
-    ...body,
-    photoDataUrl: summarizeBase64(body.photoDataUrl),
-  })
-}
-
 async function submitVehicle(body: VisitorVehicleSubmitBody): Promise<void> {
   await sleep(900)
   console.info('[VisitorApi.submitVehicle] mock payload', {
@@ -54,8 +30,6 @@ async function submitVehicle(body: VisitorVehicleSubmitBody): Promise<void> {
   })
 }
 
-/** 与后续 `requestClient` 替换时保持同名方法即可 */
 export const VisitorApi = {
-  submitPerson,
   submitVehicle,
 }

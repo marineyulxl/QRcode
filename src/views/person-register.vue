@@ -2,9 +2,9 @@
 import { reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import { VisitorApi } from '#/api/visitor-mock'
+import { createFrontPersonnel } from '#/api/front-personnel'
+import { uploadInfraFile } from '#/api/infra-file'
 import CapturePhotoField from '#/components/capture-photo-field.vue'
-import { fileToDataUrl } from '#/utils/image-compress'
 import { showToast } from '#/utils/toast-bus'
 import { isIdCard, isMobile, parseOptionalNonNegativeInt } from '#/utils/validation'
 
@@ -45,31 +45,23 @@ async function onSubmit(): Promise<void> {
   }
 
   submitting.value = true
-  const hide = () => {
-    submitting.value = false
-  }
-
   try {
-    const photoFile = photo.value
-    if (!photoFile) {
-      showToast('请拍摄人脸照片', 'error')
-      return
-    }
-
-    const photoDataUrl = await fileToDataUrl(photoFile)
+    // validate() 已校验必填含照片
+    const picture = await uploadInfraFile(photo.value!)
     const companion = parseOptionalNonNegativeInt(companionCount.value)
+    const numberStr =
+      companionCount.value.trim() === '' ? '0' : String(companion ?? 0)
 
-    await VisitorApi.submitPerson({
-      visitorName: visitorName.value.trim(),
-      mobile: mobile.value.trim(),
-      photoDataUrl,
-      photoFileName: photoFile.name,
-      companionCount: companionCount.value.trim() === '' ? null : companion,
-      reason: reason.value.trim(),
-      idNumber: idNumber.value.trim(),
+    const successText = await createFrontPersonnel({
+      name: visitorName.value.trim(),
+      idCard: idNumber.value.trim(),
+      phone: mobile.value.trim(),
+      picture,
+      number: numberStr,
+      subject: reason.value.trim(),
     })
 
-    showToast('提交成功', 'success')
+    showToast(successText, 'success')
     visitorName.value = ''
     mobile.value = ''
     photo.value = null
@@ -79,7 +71,7 @@ async function onSubmit(): Promise<void> {
   } catch (e) {
     showToast(e instanceof Error ? e.message : '提交失败', 'error')
   } finally {
-    hide()
+    submitting.value = false
   }
 }
 </script>

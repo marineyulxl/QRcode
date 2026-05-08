@@ -24,13 +24,13 @@ const routes: RouteRecordRaw[] = [
     path: '/out/driver',
     name: 'outbound-driver',
     component: () => import('../views/outbound-driver-page.vue'),
-    meta: { title: '进场登记·司机' },
+    meta: { title: '出货单 · 司机填报' },
   },
   {
     path: '/out/warehouse',
     name: 'outbound-warehouse',
     component: () => import('../views/outbound-warehouse-page.vue'),
-    meta: { title: '出库登记·库管' },
+    meta: { title: '出货单 · 库管填报' },
   },
 ]
 

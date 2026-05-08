@@ -4,6 +4,10 @@
 
 ---
 
+## 2026-05-07
+
+- **人员登记接后端**：`POST /infra/file/upload` 上传人脸 → `POST /camera/front-personnel/create` 提交；请求头 `tenant-id`（默认 `1`，见 `src/config/env.ts`）。详见 [`features/01-来访登记三页静态站.md`](features/01-来访登记三页静态站.md)。
+
 ## 2026-05-06
 
 - **出货单（Mock）**：`/out/driver`、`/out/warehouse`，无 token；司机拉「最近一条」海康 Mock；库管填报 + `outbound-category-types`；快照存 sessionStorage。详见 [`features/02-出货单双角色扫码.md`](features/02-出货单双角色扫码.md)。

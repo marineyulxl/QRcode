@@ -49,13 +49,10 @@ async function onSubmit(): Promise<void> {
 
   submitting.value = true
   try {
-    if (!driverPhoto.value || !vehiclePhoto.value) {
-      showToast('请补全照片', 'error')
-      return
-    }
-
-    const driverPhotoDataUrl = await fileToDataUrl(driverPhoto.value)
-    const vehiclePhotoDataUrl = await fileToDataUrl(vehiclePhoto.value)
+    const d = driverPhoto.value!
+    const v = vehiclePhoto.value!
+    const driverPhotoDataUrl = await fileToDataUrl(d)
+    const vehiclePhotoDataUrl = await fileToDataUrl(v)
 
     await VisitorApi.submitVehicle({
       driverName: driverName.value.trim(),
@@ -64,9 +61,9 @@ async function onSubmit(): Promise<void> {
       vehicleType: vehicleType.value,
       mobile: mobile.value.trim(),
       driverPhotoDataUrl,
-      driverPhotoFileName: driverPhoto.value.name,
+      driverPhotoFileName: d.name,
       vehiclePhotoDataUrl,
-      vehiclePhotoFileName: vehiclePhoto.value.name,
+      vehiclePhotoFileName: v.name,
     })
 
     showToast('提交成功', 'success')
