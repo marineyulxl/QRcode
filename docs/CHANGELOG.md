@@ -6,7 +6,7 @@
 
 ## 2026-05-08
 
-- **车辆登记接后端**：两次上传 → `POST /camera/front-vehicle/create`；车辆类型中文映射为接口 `type` 编码（`VEHICLE_TYPE_API_CODE`）。移除 `visitor-mock.ts`。详见 [`features/01-来访登记三页静态站.md`](features/01-来访登记三页静态站.md)。
+- **车辆登记接后端**：`GET /camera/vehicle-type/page`（无参数）拉取下拉选项 → 两次上传 → `POST /camera/front-vehicle/create`。移除 `visitor-mock.ts` 与本地 `vehicle-types` 枚举（类型以后端为准）。详见 [`features/01-来访登记三页静态站.md`](features/01-来访登记三页静态站.md)。
 
 ## 2026-05-07
 

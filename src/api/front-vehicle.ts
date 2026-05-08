@@ -17,3 +17,21 @@ export async function createFrontVehicle(body: FrontVehicleCreateBody): Promise<
   if (fromData) return fromData
   return res.msg?.trim() || '提交成功'
 }
+
+export type VehicleTypeOption = { label: string; value: string }
+
+type VehicleTypePageData = {
+  total: number
+  list: { id: number; content: string }[]
+}
+
+/** GET `/camera/vehicle-type/page`，无 query；下拉 `{ value: id, label: content }`；失败返回空数组 */
+export async function fetchVehicleTypeOptions(): Promise<VehicleTypeOption[]> {
+  try {
+    const { data: res } = await request.get<CommonResult<VehicleTypePageData>>('/camera/vehicle-type/page')
+    const list = res.data?.list ?? []
+    return list.map((r) => ({ value: String(r.id), label: r.content }))
+  } catch {
+    return []
+  }
+}

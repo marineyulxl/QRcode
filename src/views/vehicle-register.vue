@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import { createFrontVehicle } from '#/api/front-vehicle'
+import {
+  createFrontVehicle,
+  fetchVehicleTypeOptions,
+  type VehicleTypeOption,
+} from '#/api/front-vehicle'
 import { uploadInfraFile } from '#/api/infra-file'
 import CapturePhotoField from '#/components/capture-photo-field.vue'
-import { VEHICLE_TYPE_API_CODE, VEHICLE_TYPES } from '#/constants/vehicle-types'
 import { showToast } from '#/utils/toast-bus'
 import { isIdCard, isMobile, isPlate } from '#/utils/validation'
 
@@ -15,7 +18,10 @@ const fieldClass =
 const driverName = ref('')
 const driverIdNumber = ref('')
 const plateNumber = ref('')
-const vehicleType = ref<(typeof VEHICLE_TYPES)[number]>('小型客车')
+/** 接口 `type` 字段，来自 `/camera/vehicle-type/page` 的选项 value */
+const vehicleTypeCode = ref('')
+const vehicleTypeOptions = ref<VehicleTypeOption[]>([])
+const typesLoading = ref(true)
 const mobile = ref('')
 const driverPhoto = ref<File | null>(null)
 const vehiclePhoto = ref<File | null>(null)
@@ -27,13 +33,29 @@ watch(plateNumber, (v) => {
   plateNumber.value = v.toUpperCase()
 })
 
+async function loadVehicleTypes(): Promise<void> {
+  typesLoading.value = true
+  try {
+    vehicleTypeOptions.value = await fetchVehicleTypeOptions()
+    if (vehicleTypeOptions.value.length > 0 && !vehicleTypeCode.value) {
+      vehicleTypeCode.value = vehicleTypeOptions.value[0].value
+    }
+  } finally {
+    typesLoading.value = false
+  }
+}
+
+onMounted(() => {
+  void loadVehicleTypes()
+})
+
 function validate(): boolean {
   Object.keys(errors).forEach((k) => delete errors[k])
 
   if (!driverName.value.trim()) errors.driverName = '请填写司机姓名'
   if (!isIdCard(driverIdNumber.value)) errors.driverIdNumber = '请填写有效身份证号'
   if (!isPlate(plateNumber.value)) errors.plateNumber = '请填写有效车牌号'
-  if (!vehicleType.value) errors.vehicleType = '请选择车辆类型'
+  if (!vehicleTypeCode.value.trim()) errors.vehicleType = '请选择车辆类型'
   if (!isMobile(mobile.value)) errors.mobile = '请填写有效手机号'
   if (!driverPhoto.value) errors.driverPhoto = '请拍摄司机照片'
   if (!vehiclePhoto.value) errors.vehiclePhoto = '请拍摄车辆照片'
@@ -57,7 +79,7 @@ async function onSubmit(): Promise<void> {
       idCard: driverIdNumber.value.trim(),
       phone: mobile.value.trim(),
       license: plateNumber.value.trim().toUpperCase(),
-      type: VEHICLE_TYPE_API_CODE[vehicleType.value],
+      type: vehicleTypeCode.value.trim(),
       selfiePhoto,
       vehiclePhoto: vehiclePhotoUrl,
     })
@@ -66,7 +88,7 @@ async function onSubmit(): Promise<void> {
     driverName.value = ''
     driverIdNumber.value = ''
     plateNumber.value = ''
-    vehicleType.value = '小型客车'
+    vehicleTypeCode.value = vehicleTypeOptions.value[0]?.value ?? ''
     mobile.value = ''
     driverPhoto.value = null
     vehiclePhoto.value = null
@@ -123,8 +145,15 @@ async function onSubmit(): Promise<void> {
 
       <div class="space-y-2">
         <label class="text-sm font-medium text-ink" for="vehicleType">车辆类型 <span class="text-danger">*</span></label>
-        <select id="vehicleType" v-model="vehicleType" :class="fieldClass">
-          <option v-for="t in VEHICLE_TYPES" :key="t" :value="t">{{ t }}</option>
+        <select
+          id="vehicleType"
+          v-model="vehicleTypeCode"
+          :disabled="typesLoading || vehicleTypeOptions.length === 0"
+          :class="fieldClass"
+        >
+          <option v-if="typesLoading" value="" disabled>加载中…</option>
+          <option v-else-if="vehicleTypeOptions.length === 0" value="" disabled>暂无类型</option>
+          <option v-for="opt in vehicleTypeOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
         </select>
         <p v-if="errors.vehicleType" class="text-sm text-danger">{{ errors.vehicleType }}</p>
       </div>
