@@ -2,10 +2,10 @@
 import { reactive, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import { VisitorApi } from '#/api/visitor-mock'
+import { createFrontVehicle } from '#/api/front-vehicle'
+import { uploadInfraFile } from '#/api/infra-file'
 import CapturePhotoField from '#/components/capture-photo-field.vue'
-import { VEHICLE_TYPES } from '#/constants/vehicle-types'
-import { fileToDataUrl } from '#/utils/image-compress'
+import { VEHICLE_TYPE_API_CODE, VEHICLE_TYPES } from '#/constants/vehicle-types'
 import { showToast } from '#/utils/toast-bus'
 import { isIdCard, isMobile, isPlate } from '#/utils/validation'
 
@@ -49,24 +49,20 @@ async function onSubmit(): Promise<void> {
 
   submitting.value = true
   try {
-    const d = driverPhoto.value!
-    const v = vehiclePhoto.value!
-    const driverPhotoDataUrl = await fileToDataUrl(d)
-    const vehiclePhotoDataUrl = await fileToDataUrl(v)
+    const selfiePhoto = await uploadInfraFile(driverPhoto.value!)
+    const vehiclePhotoUrl = await uploadInfraFile(vehiclePhoto.value!)
 
-    await VisitorApi.submitVehicle({
-      driverName: driverName.value.trim(),
-      driverIdNumber: driverIdNumber.value.trim(),
-      plateNumber: plateNumber.value.trim().toUpperCase(),
-      vehicleType: vehicleType.value,
-      mobile: mobile.value.trim(),
-      driverPhotoDataUrl,
-      driverPhotoFileName: d.name,
-      vehiclePhotoDataUrl,
-      vehiclePhotoFileName: v.name,
+    const successText = await createFrontVehicle({
+      name: driverName.value.trim(),
+      idCard: driverIdNumber.value.trim(),
+      phone: mobile.value.trim(),
+      license: plateNumber.value.trim().toUpperCase(),
+      type: VEHICLE_TYPE_API_CODE[vehicleType.value],
+      selfiePhoto,
+      vehiclePhoto: vehiclePhotoUrl,
     })
 
-    showToast('提交成功', 'success')
+    showToast(successText, 'success')
     driverName.value = ''
     driverIdNumber.value = ''
     plateNumber.value = ''

@@ -4,6 +4,10 @@
 
 ---
 
+## 2026-05-08
+
+- **车辆登记接后端**：两次上传 → `POST /camera/front-vehicle/create`；车辆类型中文映射为接口 `type` 编码（`VEHICLE_TYPE_API_CODE`）。移除 `visitor-mock.ts`。详见 [`features/01-来访登记三页静态站.md`](features/01-来访登记三页静态站.md)。
+
 ## 2026-05-07
 
 - **人员登记接后端**：`POST /infra/file/upload` 上传人脸 → `POST /camera/front-personnel/create` 提交；请求头 `tenant-id`（默认 `1`，见 `src/config/env.ts`）。详见 [`features/01-来访登记三页静态站.md`](features/01-来访登记三页静态站.md)。

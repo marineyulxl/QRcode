@@ -131,4 +131,4 @@ if (!-e $request_filename) {
 
 ## 后续接后端
 
-将 [`src/api/visitor-mock.ts`](src/api/visitor-mock.ts) 中的 `VisitorApi` 替换为真实 `fetch` 或统一请求客户端；图片建议改为 `multipart/form-data` 上传，勿长期把 Base64 放在前端日志中。
+人员 / 车辆登记已走 [`src/api/request.ts`](src/api/request.ts)：`/infra/file/upload` + `/camera/front-personnel/create`、`/camera/front-vehicle/create`。其它模块仍可按同一套路扩展。
