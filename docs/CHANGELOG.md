@@ -4,6 +4,10 @@
 
 ---
 
+## 2026-05-11
+
+- **出货单司机页**：对接 `POST /camera/back-vehicle/create`（上传自拍 + 姓名/身份证/手机）；海康识别区块暂不启用；库管页仍为 Mock。详见 [`features/02-出货单双角色扫码.md`](features/02-出货单双角色扫码.md)。
+
 ## 2026-05-08
 
 - **车辆登记接后端**：`GET /camera/vehicle-type/page`（无参数）拉取下拉选项 → 两次上传 → `POST /camera/front-vehicle/create`。移除 `visitor-mock.ts` 与本地 `vehicle-types` 枚举（类型以后端为准）。详见 [`features/01-来访登记三页静态站.md`](features/01-来访登记三页静态站.md)。

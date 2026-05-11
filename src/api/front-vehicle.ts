@@ -1,5 +1,5 @@
 import type { CommonResult } from '#/api/request'
-import { request } from '#/api/request'
+import { pickCreateSuccessMessage, request } from '#/api/request'
 
 export type FrontVehicleCreateBody = {
   name: string
@@ -12,10 +12,11 @@ export type FrontVehicleCreateBody = {
 }
 
 export async function createFrontVehicle(body: FrontVehicleCreateBody): Promise<string> {
-  const { data: res } = await request.post<CommonResult<string>>('/camera/front-vehicle/create', body)
-  const fromData = res.data?.trim()
-  if (fromData) return fromData
-  return res.msg?.trim() || '提交成功'
+  const { data: res } = await request.post<CommonResult<string | number>>(
+    '/camera/front-vehicle/create',
+    body,
+  )
+  return pickCreateSuccessMessage(res.data, res.msg, '车辆信息录入成功')
 }
 
 export type VehicleTypeOption = { label: string; value: string }

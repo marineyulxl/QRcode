@@ -1,5 +1,5 @@
 import type { CommonResult } from '#/api/request'
-import { request } from '#/api/request'
+import { pickCreateSuccessMessage, request } from '#/api/request'
 
 export type FrontPersonnelCreateBody = {
   name: string
@@ -10,13 +10,10 @@ export type FrontPersonnelCreateBody = {
   subject: string
 }
 
-/** 成功提示用接口里的 `data`（字符串）；没有则用 `msg` */
 export async function createFrontPersonnel(body: FrontPersonnelCreateBody): Promise<string> {
-  const { data: res } = await request.post<CommonResult<string>>(
+  const { data: res } = await request.post<CommonResult<string | number>>(
     '/camera/front-personnel/create',
     body,
   )
-  const fromData = res.data?.trim()
-  if (fromData) return fromData
-  return res.msg?.trim() || '提交成功'
+  return pickCreateSuccessMessage(res.data, res.msg, '信息录入成功')
 }

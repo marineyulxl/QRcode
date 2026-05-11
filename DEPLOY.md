@@ -39,6 +39,33 @@ server {
 }
 ```
 
+### 业务接口 `/admin-api`（与代码一致，缺了会「线上全挂」）
+
+打包后的页面**没有** Vite 开发代理。`src/config/env.ts` 里 `apiBaseUrl` 为 **`/admin-api`**，浏览器会请求**当前站点同源**下的地址，例如（把 `https://你的域名` 换成真实域名）：
+
+| 用途 | 线上实际 URL（方法） |
+|------|----------------------|
+| 上传文件 | `https://你的域名/admin-api/infra/file/upload`（POST） |
+| 人员建档 | `https://你的域名/admin-api/camera/front-personnel/create`（POST） |
+| 车辆建档 | `https://你的域名/admin-api/camera/front-vehicle/create`（POST） |
+| 车辆类型 | `https://你的域名/admin-api/camera/vehicle-type/page`（GET） |
+| 后大门司机建档（出货单司机页） | `https://你的域名/admin-api/camera/back-vehicle/create`（POST） |
+
+请求头会带 **`tenant-id: 1`**（与 `env.ts` 一致）。
+
+**必须在网关/Nginx 把 `/admin-api/` 反代到后端**（端口与路径以后端为准），示意：
+
+```nginx
+location /admin-api/ {
+  proxy_pass http://127.0.0.1:48080/admin-api/;
+  proxy_set_header Host $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_http_version 1.1;
+}
+```
+
+若后端挂载路径不是 `/admin-api`，需同时改 `src/config/env.ts` 的 `apiBaseUrl` 并与运维约定一致。
+
 ### 子路径部署
 
 若站点挂在 `https://host/visitor/`，构建前在 `vite.config.ts` 设置：

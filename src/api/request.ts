@@ -8,6 +8,21 @@ export type CommonResult<T = unknown> = {
   data?: T
 }
 
+/**
+ * 创建类接口：`data` 为文案字符串则展示；为数字（常见为新增 id）则展示前端固定话术；
+ * `msg` 非空优先于数字场景的 fallback。
+ */
+export function pickCreateSuccessMessage(
+  data: unknown,
+  msg: string | undefined,
+  fallback = '提交成功',
+): string {
+  if (typeof data === 'string' && data.trim()) return data.trim()
+  if (typeof msg === 'string' && msg.trim()) return msg.trim()
+  if (typeof data === 'number' && Number.isFinite(data)) return fallback
+  return fallback
+}
+
 export const request = axios.create({
   baseURL: apiBaseUrl,
   headers: {

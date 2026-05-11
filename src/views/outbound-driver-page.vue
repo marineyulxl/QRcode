@@ -1,19 +1,20 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 
+import { createBackVehicle } from '#/api/back-vehicle'
+import { uploadInfraFile } from '#/api/infra-file'
 import {
   mockFetchLatestHikvisionForDriver,
   mockRefreshLatestHikvisionEvent,
-  submitOutboundDriver,
 } from '#/api/outbound-mock'
 import CapturePhotoField from '#/components/capture-photo-field.vue'
-import { fileToDataUrl } from '#/utils/image-compress'
 import { showToast } from '#/utils/toast-bus'
 import { isIdCard, isMobile } from '#/utils/validation'
 
 const fieldClass =
   'w-full rounded-xl border border-border bg-white px-3 py-3 text-base text-ink outline-none ring-cta/20 focus:border-cta focus:ring-2'
 
+/** 车辆识别：仍为 Mock 演示，不接海康；提交接口不包含车牌/车辆图 */
 const hikLoading = ref(true)
 const hikRefreshing = ref(false)
 const hikError = ref('')
@@ -65,9 +66,6 @@ onMounted(() => {
 function validate(): boolean {
   Object.keys(errors).forEach((k) => delete errors[k])
 
-  if (hikLoading.value || !hikPlate.value || !hikVehicleUrl.value) {
-    errors.hik = hikError.value || '请等待车辆信息加载'
-  }
   if (!driverName.value.trim()) errors.driverName = '请填写司机姓名'
   if (!isMobile(mobile.value)) errors.mobile = '请填写有效手机号'
   if (!isIdCard(idNumber.value)) errors.idNumber = '请填写有效身份证号'
@@ -82,25 +80,17 @@ async function onSubmit(): Promise<void> {
     return
   }
 
-  const photoFile = driverPhoto.value
-  if (!photoFile) {
-    showToast('请拍摄司机照片', 'error')
-    return
-  }
-
+  const photoFile = driverPhoto.value!
   submitting.value = true
   try {
-    const driverPhotoDataUrl = await fileToDataUrl(photoFile)
-    await submitOutboundDriver({
-      driverName: driverName.value.trim(),
-      mobile: mobile.value.trim(),
-      idNumber: idNumber.value.trim(),
-      driverPhotoDataUrl,
-      driverPhotoFileName: photoFile.name,
-      plateNumber: hikPlate.value.trim().toUpperCase(),
-      vehiclePhotoUrl: hikVehicleUrl.value,
+    const selfiePhoto = await uploadInfraFile(photoFile)
+    const successText = await createBackVehicle({
+      name: driverName.value.trim(),
+      idCard: idNumber.value.trim(),
+      phone: mobile.value.trim(),
+      selfiePhoto,
     })
-    showToast('提交成功', 'success')
+    showToast(successText, 'success')
     driverName.value = ''
     mobile.value = ''
     idNumber.value = ''
@@ -128,7 +118,10 @@ async function onSubmit(): Promise<void> {
     <main class="mx-auto w-full max-w-lg flex-1 space-y-5 px-4 py-5">
       <section class="rounded-2xl border border-border bg-surface-card p-4 shadow-card">
         <div class="flex items-start justify-between gap-2">
-          <h2 class="text-sm font-semibold text-ink">车辆识别信息</h2>
+          <div>
+            <h2 class="text-sm font-semibold text-ink">车辆识别信息</h2>
+            <p class="mt-1 text-xs text-ink-muted">演示数据，正式环境接入海康后替换</p>
+          </div>
           <button
             type="button"
             class="shrink-0 text-xs font-semibold text-cta hover:text-cta-hover disabled:opacity-50"
@@ -150,7 +143,6 @@ async function onSubmit(): Promise<void> {
             <img :src="hikVehicleUrl" alt="车辆照片" class="max-h-48 w-full object-cover" />
           </div>
         </div>
-        <p v-if="errors.hik" class="mt-2 text-sm text-danger">{{ errors.hik }}</p>
       </section>
 
       <div class="space-y-2">
