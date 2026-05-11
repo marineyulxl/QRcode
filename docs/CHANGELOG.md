@@ -14,6 +14,7 @@
 
 ## 2026-05-07
 
+- **出货单库管页接后端**：`GET /camera/back-vehicle/page` 拉取车牌列表 → `PUT /camera/back-vehicle/library_update` 提交物资/数量/出库类别（与 `文档/接口文档/后大门接口.md` 一致）；移除 Mock 库管列表与 sessionStorage 合并逻辑。详见 [`features/02-出货单双角色扫码.md`](features/02-出货单双角色扫码.md)。
 - **人员登记接后端**：`POST /infra/file/upload` 上传人脸 → `POST /camera/front-personnel/create` 提交；请求头 `tenant-id`（默认 `1`，见 `src/config/env.ts`）。详见 [`features/01-来访登记三页静态站.md`](features/01-来访登记三页静态站.md)。
 
 ## 2026-05-06
@@ -27,4 +28,4 @@
 
 ## 后续
 
-- 出货单接 **真实后端 + 海康**：替换 Mock，见 [`features/02-出货单双角色扫码.md`](features/02-出货单双角色扫码.md) 第五节。
+- 出货单司机页 **识别区接真实海康/后端**：替换 `outbound-mock`，见 [`features/02-出货单双角色扫码.md`](features/02-出货单双角色扫码.md) 第五节。

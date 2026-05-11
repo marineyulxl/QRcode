@@ -1,23 +1,29 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 
+import type { BackVehiclePageItem } from '#/api/back-vehicle'
+import {
+  fetchBackVehiclePage,
+  libraryUpdateBackVehicle,
+  pendingLibraryRows,
+  toLibraryUpdateBody,
+} from '#/api/back-vehicle'
 import type { OutboundCategoryValue } from '#/constants/outbound-category-types'
 import { OUTBOUND_CATEGORIES, categoryOptionLabel } from '#/constants/outbound-category-types'
-import {
-  getWarehousePlateOptions,
-  submitOutboundWarehouse,
-  type WarehousePlateOption,
-} from '#/api/outbound-mock'
 import { showToast } from '#/utils/toast-bus'
 import { parsePositiveInt } from '#/utils/validation'
 
 const fieldClass =
   'w-full rounded-xl border border-border bg-white px-3 py-3 text-base text-ink outline-none ring-cta/20 focus:border-cta focus:ring-2'
 
-const plateOptions = ref<WarehousePlateOption[]>([])
-const selectedPlate = ref('')
-
-const selectedRow = ref<WarehousePlateOption | null>(null)
+const plateOptions = ref<BackVehiclePageItem[]>([])
+const selectedId = ref('')
+const selectedRow = computed(() => {
+  const raw = selectedId.value.trim()
+  if (!raw) return null
+  const id = Number(raw)
+  return Number.isFinite(id) ? (plateOptions.value.find((o) => o.id === id) ?? null) : null
+})
 
 const materialName = ref('')
 const quantity = ref('')
@@ -25,46 +31,38 @@ const categoryType = ref<OutboundCategoryValue>('maintenance')
 
 const errors = reactive<Record<string, string>>({})
 const submitting = ref(false)
+const listLoading = ref(false)
 
-function syncPlateList(): void {
-  const prev = selectedPlate.value
-  plateOptions.value = getWarehousePlateOptions()
-  const stillValid = prev !== '' && plateOptions.value.some((o) => o.plateNumber === prev)
-  selectedPlate.value = stillValid ? prev : ''
-  applySelectedRow()
-}
-
-function applySelectedRow(): void {
-  const p = selectedPlate.value.trim().toUpperCase()
-  if (!p) {
-    selectedRow.value = null
-    return
+async function syncPlateList(): Promise<void> {
+  const prev = selectedId.value
+  listLoading.value = true
+  try {
+    const { list } = await fetchBackVehiclePage()
+    plateOptions.value = pendingLibraryRows(list)
+    selectedId.value =
+      prev !== '' && plateOptions.value.some((o) => String(o.id) === prev) ? prev : ''
+  } catch (e) {
+    showToast(e instanceof Error ? e.message : '加载列表失败', 'error')
+    plateOptions.value = []
+    selectedId.value = ''
+  } finally {
+    listLoading.value = false
   }
-  selectedRow.value = plateOptions.value.find((o) => o.plateNumber.toUpperCase() === p) ?? null
 }
-
-watch(selectedPlate, applySelectedRow)
 
 onMounted(() => {
-  syncPlateList()
+  void syncPlateList()
 })
 
 function validate(): boolean {
   Object.keys(errors).forEach((k) => delete errors[k])
 
-  if (!selectedPlate.value.trim()) {
-    errors.plate = '请选择车牌号码'
-  } else if (!selectedRow.value) {
-    errors.plate = '所选车辆无效，请同步列表后重试'
-  }
+  if (!selectedId.value.trim()) errors.plate = '请选择车牌号码'
+  else if (!selectedRow.value) errors.plate = '所选车辆无效，请同步列表后重试'
 
-  if (!materialName.value.trim()) {
-    errors.materialName = '请填写物资名称'
-  }
+  if (!materialName.value.trim()) errors.materialName = '请填写物资名称'
 
-  if (parsePositiveInt(quantity.value) === null) {
-    errors.quantity = '请填写大于 0 的整数数量'
-  }
+  if (parsePositiveInt(quantity.value) === null) errors.quantity = '请填写大于 0 的整数数量'
 
   return Object.keys(errors).length === 0
 }
@@ -84,19 +82,20 @@ async function onSubmit(): Promise<void> {
 
   submitting.value = true
   try {
-    await submitOutboundWarehouse({
-      plateNumber: row.plateNumber,
-      vehiclePhotoUrl: row.vehiclePhotoUrl,
-      materialName: materialName.value.trim(),
-      quantity: q,
-      categoryType: categoryType.value,
-    })
-    showToast('提交成功', 'success')
+    const tip = await libraryUpdateBackVehicle(
+      toLibraryUpdateBody(
+        row,
+        materialName.value.trim(),
+        String(q),
+        categoryOptionLabel(categoryType.value),
+      ),
+    )
+    showToast(tip, 'success')
     materialName.value = ''
     quantity.value = ''
     categoryType.value = 'maintenance'
-    selectedPlate.value = ''
-    syncPlateList()
+    selectedId.value = ''
+    await syncPlateList()
   } catch (e) {
     showToast(e instanceof Error ? e.message : '提交失败', 'error')
   } finally {
@@ -120,17 +119,29 @@ async function onSubmit(): Promise<void> {
       <div class="space-y-2">
         <div class="flex items-center justify-between gap-2">
           <label class="text-sm font-medium text-ink" for="ow-plate">车牌号码 <span class="text-danger">*</span></label>
-          <button type="button" class="shrink-0 text-xs font-semibold text-cta hover:text-cta-hover" @click="syncPlateList">
-            同步列表
+          <button
+            type="button"
+            class="shrink-0 text-xs font-semibold text-cta hover:text-cta-hover disabled:opacity-50"
+            :disabled="listLoading"
+            @click="syncPlateList"
+          >
+            {{ listLoading ? '加载中…' : '同步列表' }}
           </button>
         </div>
-        <select id="ow-plate" v-model="selectedPlate" :class="fieldClass" :disabled="plateOptions.length === 0">
-          <option disabled value="">{{ plateOptions.length === 0 ? '暂无待出库车辆' : '请选择' }}</option>
-          <option v-for="o in plateOptions" :key="o.plateNumber" :value="o.plateNumber">
-            {{ o.plateNumber }}
+        <select
+          id="ow-plate"
+          v-model="selectedId"
+          :class="fieldClass"
+          :disabled="plateOptions.length === 0 || listLoading"
+        >
+          <option disabled value="">{{ plateOptions.length === 0 ? '暂无待补录车辆' : '请选择' }}</option>
+          <option v-for="o in plateOptions" :key="o.id" :value="String(o.id)">
+            {{ o.license || `记录 #${o.id}` }}
           </option>
         </select>
-        <p v-if="plateOptions.length === 0" class="text-xs text-ink-muted">列表由系统下发：当前无已完成进场登记的车辆，司机提交后可同步列表。</p>
+        <p v-if="plateOptions.length === 0 && !listLoading" class="text-xs text-ink-muted">
+          暂无「审批状态为未审批」的车辆；司机建档后点「同步列表」。已补录并审批通过的记录不在此列表。
+        </p>
         <p v-if="errors.plate" class="text-sm text-danger">{{ errors.plate }}</p>
       </div>
 
@@ -138,7 +149,7 @@ async function onSubmit(): Promise<void> {
         <section class="space-y-2 rounded-2xl border border-border bg-surface-card p-4 shadow-card">
           <h2 class="text-sm font-semibold text-ink">车辆照片</h2>
           <div class="overflow-hidden rounded-xl border border-border">
-            <img :src="selectedRow.vehiclePhotoUrl" alt="车辆照片" class="max-h-48 w-full object-cover" />
+            <img :src="selectedRow.vehiclePhoto" alt="车辆照片" class="max-h-48 w-full object-cover" />
           </div>
         </section>
 
@@ -147,15 +158,15 @@ async function onSubmit(): Promise<void> {
           <dl class="grid gap-2 text-sm">
             <div class="flex justify-between gap-2">
               <dt class="text-ink-muted">姓名</dt>
-              <dd class="font-medium text-ink">{{ selectedRow.driverName }}</dd>
+              <dd class="font-medium text-ink">{{ selectedRow.name }}</dd>
             </div>
             <div class="flex justify-between gap-2">
               <dt class="text-ink-muted">手机号码</dt>
-              <dd class="font-medium text-ink">{{ selectedRow.driverMobile }}</dd>
+              <dd class="font-medium text-ink">{{ selectedRow.phone }}</dd>
             </div>
             <div class="flex justify-between gap-2">
               <dt class="text-ink-muted">居民身份证号</dt>
-              <dd class="break-all font-medium text-ink">{{ selectedRow.driverIdNumber }}</dd>
+              <dd class="break-all font-medium text-ink">{{ selectedRow.idCard }}</dd>
             </div>
           </dl>
         </section>
@@ -193,7 +204,7 @@ async function onSubmit(): Promise<void> {
         <button
           type="button"
           class="flex min-h-touch w-full items-center justify-center rounded-2xl bg-primary text-base font-semibold text-primary-foreground transition disabled:opacity-60"
-          :disabled="submitting || plateOptions.length === 0"
+          :disabled="submitting || listLoading || plateOptions.length === 0"
           @click="onSubmit"
         >
           {{ submitting ? '提交中…' : '提交' }}

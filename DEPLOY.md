@@ -50,6 +50,8 @@ server {
 | 车辆建档 | `https://你的域名/admin-api/camera/front-vehicle/create`（POST） |
 | 车辆类型 | `https://你的域名/admin-api/camera/vehicle-type/page`（GET） |
 | 后大门司机建档（出货单司机页） | `https://你的域名/admin-api/camera/back-vehicle/create`（POST） |
+| 后大门车辆分页（出货单库管列表） | `https://你的域名/admin-api/camera/back-vehicle/page`（GET） |
+| 库管补录出库（出货单库管页） | `https://你的域名/admin-api/camera/back-vehicle/library_update`（PUT） |
 
 请求头会带 **`tenant-id: 1`**（与 `env.ts` 一致）。
 
